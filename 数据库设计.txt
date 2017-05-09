@@ -1,0 +1,52 @@
+{
+	姓名name
+	性别gender
+	身份证id
+	身份属性Career
+	省份province
+	工作单位company
+	移动电话phone
+	EMAIL mail
+	通讯地址address
+}
+{
+	住宿要求
+	住宿备注
+	房间属性
+	房间价格
+	到达车次
+	入住日期
+	离店日期
+	入住天数
+	住宿发票抬头
+	住宿应收费用
+	住宿差额税
+	酒店刷卡金额
+	现金
+	会务公司刷卡金额
+	收费状态
+}
+{酒店信息表
+    hotel酒店
+    room房间//房间号
+    avalible_num可住人数//当前可住的人数0/1/2
+    max_num最大人数//单人||双人1、2
+    type房间类型//标间。。。
+    price价格
+}
+{住宿表 stay_info
+    身份证id
+    住宿需求zhusuxuqiu
+    酒店名hotel
+    房间号room
+    开始日期begin
+    结束日期end
+
+}
+
+{
+}
+if 单间 -》 num==num
+if 合住 》 a_num>0
+
+（最大人数-可住人数）+1
