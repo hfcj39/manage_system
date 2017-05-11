@@ -1,4 +1,4 @@
-/**
+/*
  * Created by bingpo on 2017/4/22.
  */
 var mongo = require('mongoskin');

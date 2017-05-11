@@ -120,25 +120,11 @@ router.route('/edituser').post(
     function (req,res){
         var obj=req.body;
         obj.id=req.body.id.toUpperCase();
-        db.collection('user').findOne({id:req.body.id.toUpperCase()},function (err,rst) {
+        db.collection('user').updateOne({id:req.body.id.toUpperCase()},{$set:obj},{upsert:true},function (err,rst) {
             if (err){
-                res.status(401);
-            }else if(!rst){
-                db.collection('user').insertOne(obj,function (err,rst) {
-                    if (err){
-                        res.status(401)
-                    }else {
-                        res.send(rst)
-                    }
-                });
+                res.status(401)
             }else {
-                db.collection('user').updateOne({id:req.body.id.toUpperCase()},{$set:obj},function (err,rst) {
-                    if (err){
-                        res.status(401)
-                    }else {
-                        res.send(rst)
-                    }
-                });
+                res.send(rst)
             }
         });
     }
@@ -175,27 +161,13 @@ router.route('/editfee').post(
     ensureAuthenticated,
     function (req,res){
         if (req.body.id){
-            var obj = req.body;
-            obj.id = obj.id.toUpperCase();
-            db.collection('fee').findOne({id:req.body.id.toUpperCase()},function (err,rst) {
+            var obj=req.body;
+            obj.id=req.body.id.toUpperCase();
+            db.collection('fee').updateOne({id:req.body.id.toUpperCase()},{$set:obj},{upsert:true},function (err,rst) {
                 if (err){
-                    res.status(401);
-                }else if(!rst){
-                    db.collection('fee').insertOne(obj,function (err,rst) {
-                        if (err){
-                            res.status(401)
-                        }else {
-                            res.send(rst)
-                        }
-                    });
+                    res.status(401)
                 }else {
-                    db.collection('fee').updateOne({id:req.body.id.toUpperCase()},{$set:obj},function (err,rst) {
-                        if (err){
-                            res.status(401)
-                        }else {
-                            res.send(rst)
-                        }
-                    });
+                    res.send(rst)
                 }
             });
         }
@@ -279,7 +251,7 @@ router.route('/getroom').post(ensureAuthenticated ,function(req,res) {
             if (err){
                 res.status(401)
             }else {
-                res.send(rst);
+                res.json({rst1: rst, rst2: []});
             }
         })
     }else if (req.body.zhusuxuqiu==="合住") {//合住
@@ -316,14 +288,19 @@ router.route('/calculateprice').post(ensureAuthenticated ,function(req, res) {
     async.waterfall([function (callback) {
         db.collection('hotel').findOne({hotel:req.body.hotel,room:req.body.room},callback)
     },function (result, callback) {
-        db.collection('stay_info').find({hotel:result.hotel,room:result.room}).count(function (err, rst) {
-            var f=parseInt(result.price)/(rst+1);
-            console.log(f);
-            res.send({price:f.toFixed(2)})
-        })
-    }],function (err) {
-        res.status(401)
+        if (result!==null){
+            db.collection('stay_info').find({hotel:result.hotel,room:result.room}).count(function (err, rst) {
+                callback(err,rst,result);
+            })
+        }else res.status(401).send('没有酒店信息');
+    }],function (err,rst,result) {
+        var f=parseInt(result.price)/(rst+1);
+        res.send({price:f.toFixed(2)})
     });
+});
+
+router.route('/savestayinfo').post(function (req, res) {
+
 });
 
 router.route('/test').post(function (req, res) {
