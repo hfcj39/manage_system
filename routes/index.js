@@ -6,6 +6,7 @@ var md5 = require('md5');
 var db = require('../db').db;
 var async=require('async');
 var _ = require('underscore');
+var xlsx = require('node-xlsx').default;
 /******auth**************************************************************************************/
 /*creat token*/
 function ctoken(name) {
@@ -285,26 +286,81 @@ router.route('/getroom').post(ensureAuthenticated ,function(req,res) {
     }
 });
 router.route('/calculateprice').post(ensureAuthenticated ,function(req, res) {
-    async.waterfall([function (callback) {
-        db.collection('hotel').findOne({hotel:req.body.hotel,room:req.body.room},callback)
-    },function (result, callback) {
-        if (result!==null){
-            db.collection('stay_info').find({hotel:result.hotel,room:result.room}).count(function (err, rst) {
-                callback(err,rst,result);
-            })
-        }else res.status(401).send('没有酒店信息');
-    }],function (err,rst,result) {
-        var f=parseInt(result.price)/(rst+1);
-        res.send({price:f.toFixed(2)})
-    });
+    db.collection('hotel').findOne({hotel:req.body.hotel,room:req.body.room},function (err, rst) {
+        var roomPrice = rst.price;
+        var begin = moment(req.body.begin).unix();
+        var end = moment(req.body.end).unix();
+        var totalPrice=0;
+        db.collection('stay_info').find({id:{$ne:req.body.id},hotel:rst.hotel,room:rst.room}).toArray(function (err, rst) {
+            for (begin;begin<=end;begin=begin+86400){
+                var roomUser = _.filter(rst,function (item) {
+                    var t_begin = moment(item.begin).unix();
+                    var t_end = moment(item.end).unix();
+                    return t_begin<=begin && begin <= t_end
+                });
+                //console.log(roomUser.length);
+                totalPrice+=roomPrice/(roomUser.length+1)
+            }
+            console.log(totalPrice);
+            res.send(totalPrice);
+        });
+    })
 });
 
 router.route('/savestayinfo').post(function (req, res) {
-
+    var obj = req.body;
+    db.collection('stay_info').updateOne({id:req.body.id},{$set:obj},{upsert:true},function (err, rst) {
+        db.collection('stay_info').find({id:{$ne:req.body.id},hotel:req.body.hotel,room:req.body.room}).toArray(function (err,rst){
+            async.map(rst,function (item, callback) {
+                caculate(item.id)//here
+            });
+        })
+    })
 });
+
+
+function caculate(userId) {
+    async.waterfall([function (callback) {
+        db.collection('stay_info').findOne({id:userId},callback);
+    },function (stayInfo, callback) {
+        db.collection('hotel').findOne({hotel:stayInfo.hotel,room:stayInfo.room},function (err, rst) {
+            callback(err,rst,stayInfo)
+        })
+    }],function (err,hotelInfo,stayInfo) {
+        var begin = moment(stayInfo.begin).unix();
+        var end = moment(stayInfo.end).unix();
+        var roomPrice = hotelInfo.price;
+        var totalPrice=0;
+        db.collection('stay_info').find({id:{$ne:userId},hotel:stayInfo.hotel,room:stayInfo.room}).toArray(function (err, rst) {
+            for (begin;begin<=end;begin=begin+86400){
+                var roomUser = _.filter(rst,function (item) {
+                    var t_begin = moment(item.begin).unix();
+                    var t_end = moment(item.end).unix();
+                    return t_begin<=begin && begin <= t_end
+                });
+                console.log(roomUser.length);
+                totalPrice+=roomPrice/(roomUser.length+1)
+            }
+            console.log(totalPrice);
+            db.collection('stay_info').updateOne({id:stayInfo.id},{$set:{totalPrice:totalPrice}})
+        });
+    });
+}
 
 router.route('/test').post(function (req, res) {
-
+    var userId = '130302198110311444';
+    var a = '2017-05-11';
+    var b = '2017-05-12';
+    var mmt = moment(a).add(1,'days').unix();
+    var am = moment(a).unix();
+    var bm = moment(b).unix();
+    var datea = new Date(mmt*1000);
+    var dateb = new Date(Date.parse(b));
+    var p = caculate('310109199012019999');
+    console.info('p'+p)
+    //console.info(am+86400)
 });
+
+
 /******api***************************************************************************************/
 module.exports = router;
