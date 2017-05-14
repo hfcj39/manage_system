@@ -6,7 +6,7 @@ var md5 = require('md5');
 var db = require('../db').db;
 var async=require('async');
 var _ = require('underscore');
-var xlsx = require('node-xlsx').default;
+//var xlsx = require('node-xlsx').default;
 /******auth**************************************************************************************/
 /*creat token*/
 function ctoken(name) {
@@ -121,6 +121,7 @@ router.route('/edituser').post(
     function (req,res){
         var obj=req.body;
         obj.id=req.body.id.toUpperCase();
+        delete obj._id;
         db.collection('user').updateOne({id:req.body.id.toUpperCase()},{$set:obj},{upsert:true},function (err,rst) {
             if (err){
                 res.status(401)
@@ -163,6 +164,7 @@ router.route('/editfee').post(
     function (req,res){
         if (req.body.id){
             var obj=req.body;
+            delete obj._id;
             obj.id=req.body.id.toUpperCase();
             db.collection('fee').updateOne({id:req.body.id.toUpperCase()},{$set:obj},{upsert:true},function (err,rst) {
                 if (err){
@@ -244,7 +246,34 @@ router.route('/deletehotel')
         });
     });
 /******hotel*************************************************************************************/
-
+/******traffic*************************************************************************************/
+router.route('/gettraffic').post(function (req, res) {
+    db.collection('traffic').findOne({id:req.body.id},function (err, rst) {
+        if (err){
+            res.status(401)
+        }else {
+            res.send(rst)
+        }
+    })
+});
+router.route('/edittraffic').post(
+    ensureAuthenticated,
+    function (req,res){
+        if (req.body.id){
+            var obj=req.body;
+            delete obj._id;
+            obj.id=req.body.id.toUpperCase();
+            db.collection('traffic').updateOne({id:req.body.id.toUpperCase()},{$set:obj},{upsert:true},function (err,rst) {
+                if (err){
+                    res.status(401)
+                }else {
+                    res.send(rst)
+                }
+            });
+        }
+    }
+);
+/******traffic*************************************************************************************/
 /******api***************************************************************************************/
 router.route('/getroom').post(ensureAuthenticated ,function(req,res) {
     if(req.body.zhusuxuqiu==="单间"){//单间
@@ -283,18 +312,20 @@ router.route('/getroom').post(ensureAuthenticated ,function(req,res) {
             res.json({rst1: rst1, rst2: rst2});
         });
 
+    }else {
+        res.send('no rst')
     }
 });
-router.route('/calculateprice').post(ensureAuthenticated ,function(req, res) {
+router.route('/calculateprice').post(/*ensureAuthenticated ,*/function(req, res) {
     db.collection('hotel').findOne({hotel:req.body.hotel,room:req.body.room},function (err, rst) {
         var roomPrice = rst.price;
-        var begin = moment(req.body.begin).unix();
+        var begin = moment(req.body.begin).unix()+86400;
         var end = moment(req.body.end).unix();
         var totalPrice=0;
         db.collection('stay_info').find({id:{$ne:req.body.id},hotel:rst.hotel,room:rst.room}).toArray(function (err, rst) {
             for (begin;begin<=end;begin=begin+86400){
                 var roomUser = _.filter(rst,function (item) {
-                    var t_begin = moment(item.begin).unix();
+                    var t_begin = moment(item.begin).unix()+86400;
                     var t_end = moment(item.end).unix();
                     return t_begin<=begin && begin <= t_end
                 });
@@ -302,22 +333,35 @@ router.route('/calculateprice').post(ensureAuthenticated ,function(req, res) {
                 totalPrice+=roomPrice/(roomUser.length+1)
             }
             console.log(totalPrice);
-            res.send(totalPrice);
+            res.send({price:totalPrice});
         });
     })
 });
 
 router.route('/savestayinfo').post(function (req, res) {
     var obj = req.body;
-    db.collection('stay_info').updateOne({id:req.body.id},{$set:obj},{upsert:true},function (err, rst) {
+    delete obj._id;
+    // console.log(obj);
+    db.collection('stay_info').updateOne({id:req.body.id},{$set:obj},{upsert:true},function (err, rst1) {
+        // console.log(err,rst1);
         db.collection('stay_info').find({id:{$ne:req.body.id},hotel:req.body.hotel,room:req.body.room}).toArray(function (err,rst){
-            async.map(rst,function (item, callback) {
+            async.map(rst,function (item) {
                 caculate(item.id)//here
             });
+            res.send(rst1)
         })
     })
 });
 
+router.route('/getstayinfo').post(function (req, res) {
+    db.collection('stay_info').findOne({id:req.body.id},function (err, rst) {
+        if (err){
+            res.status(401)
+        }else {
+            res.send(rst)
+        }
+    })
+});
 
 function caculate(userId) {
     async.waterfall([function (callback) {
@@ -342,23 +386,54 @@ function caculate(userId) {
                 totalPrice+=roomPrice/(roomUser.length+1)
             }
             console.log(totalPrice);
-            db.collection('stay_info').updateOne({id:stayInfo.id},{$set:{totalPrice:totalPrice}})
+            var chaeshui = (stayInfo.kaipiaojine-totalPrice)*0.05;
+            db.collection('stay_info').updateOne({id:stayInfo.id},{$set:{totalPrice:totalPrice,chaeshui:chaeshui}})
         });
     });
 }
 
-router.route('/test').post(function (req, res) {
-    var userId = '130302198110311444';
-    var a = '2017-05-11';
-    var b = '2017-05-12';
-    var mmt = moment(a).add(1,'days').unix();
-    var am = moment(a).unix();
-    var bm = moment(b).unix();
-    var datea = new Date(mmt*1000);
-    var dateb = new Date(Date.parse(b));
-    var p = caculate('310109199012019999');
-    console.info('p'+p)
-    //console.info(am+86400)
+router.route('/test').get(function(req,res){
+    var fileName= "user.xls";
+    res.set({
+        'Content-Type': 'application/vnd.ms-execl',
+        'Content-Disposition':  "attachment;filename="+encodeURIComponent(fileName) ,
+        'Pragma':'no-cache',
+        'Expires': 0
+    });
+    db.collection('user').find().toArray(function (err, rst) {
+        var arr=rst;
+        var content='';
+        for(var i=0,len=arr.length;i<len;i++){
+            content+=arr[i]['name'];
+            content+='\t';
+            content+=arr[i]['gender'];
+            content+='\t';
+            content+=arr[i]['id'];
+            content+='\t';
+            content+=arr[i]['career'];
+            content+='\t';
+            content+=arr[i]['province'];
+            content+='\t';
+            content+=arr[i]['company'];
+            content+='\t';
+            content+=arr[i]['phone'];
+            content+='\t';
+            content+=arr[i]['email'];
+            content+='\t';
+            content+=arr[i]['address'];
+            content+='\t';
+            content+=arr[i]['comment'];
+            content+='\t';
+            content+='\t\n';
+        }
+        var buffer = new Buffer(content);
+        //需要转换字符集
+        var iconv = require('iconv-lite');
+        var str=iconv.encode(buffer,'gb2312');
+        res.send(str);
+    })
+    //var arr=[{name:'张三',age:'32岁'},{name:'李四',age:'60岁'},{name:'王五',age:'10岁'},{name:'赵六',age:'100岁'}];
+
 });
 
 
