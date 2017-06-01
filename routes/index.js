@@ -42,7 +42,7 @@ function ensureAuthenticated(req, res, next) {
 router.route('/signin').post(
     function (req, res) {
         db.collection('admin').findOne({
-            username:md5(req.body.username),
+            username:req.body.username,
             password:md5(req.body.password)
             }, function (err, rst) {
                 if (err || !rst){
@@ -56,26 +56,29 @@ router.route('/signin').post(
     }
 );
 router.route('/signup').post(
-    ensureAuthenticated,
     function (req, res) {
         var obj = {
-            username:md5(req.body.username),
+            username:req.body.username,
             password:md5(req.body.password)
         };
-        db.collection('admin').findOne({username:md5(req.body.username)},function (err,rst) {
-            //console.log(rst);
+        console.log(obj);
+        db.collection('admin').findOne({username:req.body.username},function (err,rst) {
+            console.log(rst);
             if (err){
+                console.log(err)
                 res.status(401);
-            }else if(!rst){
+            }else if(!err){
+                console.log('here')
                 db.collection('admin').insertOne(obj,function (err,rst) {
                     if (err){
                         res.status(401)
                     }else {
+                        console.log(rst+2);
                         res.send(rst)
                     }
                 });
             }else {
-                db.collection('admin').updateOne({username:md5(req.body.username)},{$set:obj},function (err,rst) {
+                db.collection('admin').updateOne({username:req.body.username},{$set:obj},function (err,rst) {
                     if (err){
                         res.status(401)
                     }else {
