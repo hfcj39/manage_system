@@ -395,7 +395,73 @@ function caculate(userId) {
     });
 }
 
-router.route('/test').get(function(req,res){
+router.route('/feeexecl').get(function (req, res) {
+    var fileName='fee.xls';
+    res.set({
+        'Content-Type': 'application/vnd.ms-execl',
+        'Content-Disposition':  "attachment;filename="+encodeURIComponent(fileName) ,
+        'Pragma':'no-cache',
+        'Expires': 0
+    });
+    db.collection('fee').find().toArray(function (err, rst) {
+        var arr=rst;
+        async.mapSeries(rst,function (item,callback) {
+            console.log('item'+item.id);
+            db.collection('user').findOne({id:item.id},function (err, user_rst) {
+                item.name=user_rst.name;
+                callback(err,item)
+            });
+        },function (err,item) {
+            arr.unshift({
+                name:'姓名',
+                id:'身份证',
+                chaeshui:'差额税',
+                yingfufeiyong:'应付费用',
+                fapiaotaitou:'发票抬头',
+                yingshoufeiyong:'应收费用',
+                kaipiaojine:'开票金额',
+                jiudianshuaka:'酒店刷卡',
+                huiwugongsishuaka:'会务公司刷卡',
+                xianjin:'现金',
+                shoufeizhuangtai:'收费状态'
+            });
+            var content='';
+            for(var i=0,len=arr.length;i<len;i++){
+                content+=arr[i]['name'];
+                content+='\t';
+                content+=arr[i]['id'];
+                content+='\t';
+                content+=arr[i]['chaeshui'];
+                content+='\t';
+                content+=arr[i]['yingfufeiyong'];
+                content+='\t';
+                content+=arr[i]['fapiaotaitou'];
+                content+='\t';
+                content+=arr[i]['yingshoufeiyong'];
+                content+='\t';
+                content+=arr[i]['kaipiaojine'];
+                content+='\t';
+                content+=arr[i]['jiudianshuaka'];
+                content+='\t';
+                content+=arr[i]['huiwugongsishuaka'];
+                content+='\t';
+                content+=arr[i]['xianjin'];
+                content+='\t';
+                content+=arr[i]['shoufeizhuangtai'];
+                content+='\t';
+                content+='\t\n';
+            }
+            var buffer = new Buffer(content);
+            //需要转换字符集
+            var iconv = require('iconv-lite');
+            var str=iconv.encode(buffer,'gb2312');
+            res.send(str);
+        });
+
+    });
+});
+
+router.route('/userexecl').get(function(req,res){
     var fileName= "user.xls";
     res.set({
         'Content-Type': 'application/vnd.ms-execl',
@@ -405,6 +471,19 @@ router.route('/test').get(function(req,res){
     });
     db.collection('user').find().toArray(function (err, rst) {
         var arr=rst;
+        arr.unshift({
+            name:'姓名',
+            gender:'性别',
+            id:'身份证',
+            career:'身份',
+            province:'地区',
+            company:'公司',
+            phone:'电话',
+            email:'邮箱',
+            address:'地址',
+            comment:'备注'
+        });
+
         var content='';
         for(var i=0,len=arr.length;i<len;i++){
             content+=arr[i]['name'];
@@ -439,6 +518,169 @@ router.route('/test').get(function(req,res){
 
 });
 
+router.route('/stayexecl').get(function (req, res) {
+    var fileName='stay_info.xls';
+    res.set({
+        'Content-Type': 'application/vnd.ms-execl',
+        'Content-Disposition':  "attachment;filename="+encodeURIComponent(fileName) ,
+        'Pragma':'no-cache',
+        'Expires': 0
+    });
+    db.collection('stay_info').find().toArray(function (err, rst) {
+        var arr=rst;
+        async.mapSeries(rst,function (item,callback) {
+            console.log('item'+item.id);
+            db.collection('user').findOne({id:item.id},function (err, user_rst) {
+                item.name=user_rst.name;
+                callback(err,item)
+            });
+        },function (err,item) {
+            arr.unshift({
+                name:'姓名',
+                id:'身份证',
+                zhusuyaoqiu:'住宿要求',
+                hotel:'酒店',
+                room:'房间',
+                begin:'开始日期',
+                end:'结束日期',
+                totalprice:'总价',
+                fangjianjiage:'房间价格',
+                fapiaotaitou:'发票抬头',
+                kaipiaojine:'开票金额',
+                chaeshui:'差额税',
+                yingfufeiyong:'应付费用',
+                jiudianshuaka:'酒店刷卡',
+                huiwugongsishuaka:'会务公司刷卡',
+                xianjin:'现金',
+                shoufeizhuangtai:'收费状态'
+            });
+            var content='';
+            for(var i=0,len=arr.length;i<len;i++){
+                content+=arr[i]['name'];
+                content+='\t';
+                content+=arr[i]['id'];
+                content+='\t';
+                content+=arr[i]['zhusuyaoqiu'];
+                content+='\t';
+                content+=arr[i]['hotel'];
+                content+='\t';
+                content+=arr[i]['room'];
+                content+='\t';
+                content+=arr[i]['begin'];
+                content+='\t';
+                content+=arr[i]['end'];
+                content+='\t';
+                content+=arr[i]['totalprice'];
+                content+='\t';
+                content+=arr[i]['fangjianjiage'];
+                content+='\t';
+                content+=arr[i]['fapiaotaitou'];
+                content+='\t';
+                content+=arr[i]['kaipiaojine'];
+                content+='\t';
+                content+=arr[i]['chaeshui'];
+                content+='\t';
+                content+=arr[i]['yingfufeiyong'];
+                content+='\t';
+                content+=arr[i]['jiudianshuaka'];
+                content+='\t';
+                content+=arr[i]['huiwugongsishuaka'];
+                content+='\t';
+                content+=arr[i]['xianjin'];
+                content+='\t';
+                content+=arr[i]['shoufeizhuangtai'];
+                content+='\t';
+                content+='\t\n';
+            }
+            var buffer = new Buffer(content);
+            //需要转换字符集
+            var iconv = require('iconv-lite');
+            var str=iconv.encode(buffer,'gb2312');
+            res.send(str);
+        });
 
+    });
+});
 /******api***************************************************************************************/
+router.route('/test1').post(function (req, res) {
+    db.collection('stay_info').find().toArray(function (err, rst) {
+        var arr=rst;
+        async.mapSeries(rst,function (item,callback) {
+            console.log('item'+item.id);
+            db.collection('user').findOne({id:item.id},function (err, user_rst) {
+                item.name=user_rst.name;
+                callback(err,item)
+            });
+        },function (err,item) {
+            arr.unshift({
+                name:'姓名',
+                id:'身份证',
+                zhusuyaoqiu:'住宿要求',
+                hotel:'酒店',
+                room:'房间',
+                begin:'开始日期',
+                end:'结束日期',
+                totalprice:'总价',
+                fangjianjiage:'房间价格',
+                fapiaotaitou:'发票抬头',
+                kaipiaojine:'开票金额',
+                chaeshui:'差额税',
+                yingfufeiyong:'应付费用',
+                jiudianshuaka:'酒店刷卡',
+                huiwugongsishuaka:'会务公司刷卡',
+                xianjin:'现金',
+                shoufeizhuangtai:'收费状态'
+            });
+            //console.log(arr)
+            res.send(arr)
+        });
+
+    });
+});
+router.route('/test2').post(function (req, res) {
+    db.collection('user').find().toArray(function (err, rst) {
+        //var arr=rst;
+        rst.unshift({
+            name:'姓名',
+            gender:'性别',
+            id:'身份证',
+            career:'身份',
+            province:'地区',
+            company:'公司',
+            phone:'电话',
+            email:'邮箱',
+            address:'地址',
+            comment:'备注'
+        });
+        res.send(rst)
+    })
+});
+router.route('/test3').post(function (req, res) {
+    db.collection('fee').find().toArray(function (err, rst) {
+        var arr=rst;
+        async.mapSeries(rst,function (item,callback) {
+            console.log('item'+item.id);
+            db.collection('user').findOne({id:item.id},function (err, user_rst) {
+                item.name=user_rst.name;
+                callback(err,item)
+            });
+        },function (err,item) {
+            arr.unshift({
+                name:'姓名',
+                id:'身份证',
+                chaeshui:'差额税',
+                yingfufeiyong:'应付费用',
+                fapiaotaitou:'发票抬头',
+                yingshoufeiyong:'应收费用',
+                kaipiaojine:'开票金额',
+                jiudianshuaka:'酒店刷卡',
+                huiwugongsishuaka:'会务公司刷卡',
+                xianjin:'现金',
+                shoufeizhuangtai:'收费状态'
+            });
+            res.send(arr);
+        });
+
+    });
+});
 module.exports = router;
