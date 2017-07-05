@@ -477,7 +477,7 @@ router.route('/userexecl').get(function(req,res){
             id:'身份证',
             career:'身份',
             province:'地区',
-            company:'公司',
+            company:'单位名称',
             phone:'电话',
             email:'邮箱',
             address:'地址',
@@ -644,9 +644,10 @@ router.route('/test2').post(function (req, res) {
             name:'姓名',
             gender:'性别',
             id:'身份证',
+            nashuirenshibiehao:'纳税人识别号',
             career:'身份',
             province:'地区',
-            company:'公司',
+            company:'单位名称',
             phone:'电话',
             email:'邮箱',
             address:'地址',
@@ -662,12 +663,18 @@ router.route('/test3').post(function (req, res) {
             console.log('item'+item.id);
             db.collection('user').findOne({id:item.id},function (err, user_rst) {
                 item.name=user_rst.name;
+                item.company=user_rst.company;
+                item.phone=user_rst.phone;
+                item.nashuirenshibiehao=user_rst.nashuirenshibiehao;
                 callback(err,item)
             });
         },function (err,item) {
             arr.unshift({
                 name:'姓名',
                 id:'身份证',
+                company:'单位名称',
+                phone:'电话',
+                nashuirenshibiehao:'纳税人识别号',
                 chaeshui:'差额税',
                 yingfufeiyong:'应付费用',
                 fapiaotaitou:'发票抬头',
