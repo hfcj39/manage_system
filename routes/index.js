@@ -609,12 +609,18 @@ router.route('/test1').post(function (req, res) {
             console.log('item'+item.id);
             db.collection('user').findOne({id:item.id},function (err, user_rst) {
                 item.name=user_rst.name;
+				item.company=user_rst.company;
+				item.phone=user_rst.phone;
+				item.nashuirenshibiehao=user_rst.nashuirenshibiehao;
                 callback(err,item)
             });
         },function (err,item) {
             arr.unshift({
                 name:'姓名',
                 id:'身份证',
+                company:'单位名称',
+                phone:'联系电话',
+                nashuirenshibiehao:'纳税人识别号',
                 zhusuyaoqiu:'住宿要求',
                 hotel:'酒店',
                 room:'房间',
