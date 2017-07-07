@@ -11,7 +11,7 @@ var router = express.Router();
 /**
  * zhusufapiaobiao
  */
-router.route('/stay_fee_info_excel').post(function(req, res){
+router.route('/stay_fee_info_excel').get(function(req, res){
 	var fileName='stay_fee_info.xls';
 	res.set({
 		'Content-Type': 'application/vnd.ms-execl',
@@ -133,7 +133,7 @@ router.route('/fee_info').post(function(req, res) {
 		});
 	});
 });
-router.route('/fee_info_excel').post(function(req, res) {
+router.route('/fee_info_excel').get(function(req, res) {
 	var fileName='fee_info.xls';
 	res.set({
 		'Content-Type': 'application/vnd.ms-execl',
@@ -222,7 +222,7 @@ router.route('/stay_info').post(function(req, res) {
 		});
 	});
 });
-router.route('/stay_info_excel').post(function(req, res) {
+router.route('/stay_info_excel').get(function(req, res) {
 	var fileName='stay_info.xls';
 	res.set({
 		'Content-Type': 'application/vnd.ms-execl',
