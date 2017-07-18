@@ -5,8 +5,12 @@ var express = require('express');
 var db = require('../db').db;
 var async = require('async');
 var iconv = require('iconv-lite');
+//var xlsx = require('node-xlsx');
+var xlsx = require('xlsx');
+var multipart = require('connect-multiparty');
+var multipartMiddleware = multipart();
+var fs = require('fs');
 var router = express.Router();
-
 
 /**
  * zhusufapiaobiao
@@ -274,8 +278,57 @@ router.route('/stay_info_excel').get(function(req, res) {
 /**
  * devide into groups
  */
+/**
+ * upload xlsx
+ */
+router.route('/import_user').post(multipartMiddleware,function(req, res) {
+	// 获得文件的临时路径
+	//console.log(req.files);
+	var tmp_path = req.files.file.path;
+
+	var newname = 'user.xlsx';
+	// 指定文件上传后的目录
+	var target_path = './public/' + newname;
+	// 移动文件
+	fs.rename(tmp_path, target_path, function(err) {
+		if (err) throw err;
+		// 删除临时文件夹文件,
+		fs.unlink(tmp_path, function() {
+			if (err) throw err;
+		});
+	});
+	//var rst = xlsx.parse('./public/user.xlsx');
+	var rst = xlsx.readFile('./public/user.xlsx');
+	var sheetNames = rst.SheetNames;
+	var worksheet = rst.Sheets[sheetNames[0]];
+	var toJson = xlsx.utils.sheet_to_json(worksheet);
+	try {
+		for(var i in toJson){
+			var obj = {
+				id:toJson[i]['身份证号/军官证号'] || '',
+				name:toJson[i]['姓名'] || '',
+				gender:toJson[i]['性别'] || '',
+				phone:toJson[i]['移动电话'] || '',
+				career:toJson[i]['类型'] || '',
+				province:toJson[i]['省份'] || '',
+				email:toJson[i]['E-mail'] || '',
+				company:toJson[i]['工作单位'] || '',
+				fapiaotaitou:toJson[i]['发票抬头'] || '',
+				nashuirendizhi:toJson[i]['纳税人地址'] || '',
+				qiandaozhuangtai:toJson[i]['签到状态'] || '',
+				nashuirendianhua:toJson[i]['纳税人电话'] || '',
+				nashuirenshibiehao:toJson[i]['纳税人识别号'] || '',
+				comment:toJson[i]['备注'] || ''
+			};
+			db.collection('user').insertOne(obj)
+		}
+		res.send('导入成功')
+	}catch(e){
+		res.send('导入发生错误')
+	}
 
 
+});
 
 
 

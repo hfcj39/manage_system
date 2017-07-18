@@ -139,7 +139,18 @@ router.route('/edituser').post(
             if (err){
                 res.status(401)
             }else {
-                res.send(rst)
+                async.parallel([function(callback) {
+                    db.collection('stay_info').deleteOne({id:req.query.id.toUpperCase()},callback)
+                },function(callback) {
+	                db.collection('fee').deleteOne({id:req.query.id.toUpperCase()},callback)
+                },function(callback) {
+	                db.collection('traffic').deleteOne({id:req.query.id.toUpperCase()},callback)
+                }],function(err, rst) {
+                    if(!err){
+	                    res.send(rst)
+                    }
+                });
+
             }
         });
     });
@@ -346,7 +357,10 @@ router.route('/savestayinfo').post(function (req, res) {
     delete obj._id;
     // console.log(obj);
     db.collection('stay_info').updateOne({id:req.body.id},{$set:obj},{upsert:true},function (err, rst1) {
-        // console.log(err,rst1);
+        //console.log(!err,rst1.result,rst1.result.hasOwnProperty('upserted'));
+        if(!err && rst1.result.nModified===0 && rst1.result.hasOwnProperty('upserted')){
+            db.collection('hotel').updateOne({hotel:req.body.hotel,room:req.body.room},{$inc:{avalible_num:-1}});
+        }
         db.collection('stay_info').find({id:{$ne:req.body.id},hotel:req.body.hotel,room:req.body.room}).toArray(function (err,rst){
             async.map(rst,function (item) {
                 caculate(item.id)//here
@@ -481,7 +495,8 @@ router.route('/userexecl').get(function(req,res){
             phone:'电话',
             email:'邮箱',
             address:'地址',
-            comment:'备注'
+            comment:'备注',
+            qiandaozhuangtai:'签到'
         });
 
         var content='';
@@ -505,6 +520,8 @@ router.route('/userexecl').get(function(req,res){
             content+=arr[i]['address'];
             content+='\t';
             content+=arr[i]['comment'];
+            content+='\t';
+            content+=arr[i]['qiandaozhuangtai'];
             content+='\t';
             content+='\t\n';
         }
@@ -657,7 +674,8 @@ router.route('/test2').post(function (req, res) {
             phone:'电话',
             email:'邮箱',
             address:'地址',
-            comment:'备注'
+            comment:'备注',
+            qiandaozhuangtai:'签到'
         });
         res.send(rst)
     })
