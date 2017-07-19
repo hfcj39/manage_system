@@ -16,7 +16,7 @@ var router = express.Router();
  * zhusufapiaobiao
  */
 router.route('/stay_fee_info_excel').get(function(req, res){
-	var fileName='stay_fee_info.xls';
+	var fileName='stay_fee_info.csv';
 	res.set({
 		'Content-Type': 'application/vnd.ms-execl',
 		'Content-Disposition':  "attachment;filename="+encodeURIComponent(fileName) ,
@@ -51,24 +51,24 @@ router.route('/stay_fee_info_excel').get(function(req, res){
 			var content='';
 			for(var i=0,len=arr.length;i<len;i++){
 				content+=arr[i]['name'];
-				content+='\t';
+				content+=',';
 				content+=arr[i]['id'];
-				content+='\t';
+				content+='\t,';
 				content+=arr[i]['company'];
-				content+='\t';
+				content+=',';
 				content+=arr[i]['phone'];
-				content+='\t';
+				content+='\t,';
 				content+=arr[i]['nashuirendizhi'];
-				content+='\t';
+				content+=',';
 				content+=arr[i]['nashuirenshibiehao'];
-				content+='\t';
+				content+='\t,';
 				content+=arr[i]['fapiaotaitou'];
-				content+='\t';
+				content+=',';
 				content+=arr[i]['kaipiaojine'];
-				content+='\t';
+				content+=',';
 				content+=arr[i]['fapiaoneirong'];
-				content+='\t';
-				content+='\t\n';
+				content+=',';
+				content+='\n';
 			}
 			var buffer = new Buffer(content);
 			//需要转换字符集
@@ -138,7 +138,7 @@ router.route('/fee_info').post(function(req, res) {
 	});
 });
 router.route('/fee_info_excel').get(function(req, res) {
-	var fileName='fee_info.xls';
+	var fileName='fee_info.csv';
 	res.set({
 		'Content-Type': 'application/vnd.ms-execl',
 		'Content-Disposition':  "attachment;filename="+encodeURIComponent(fileName) ,
@@ -173,24 +173,24 @@ router.route('/fee_info_excel').get(function(req, res) {
 			var content='';
 			for(var i=0,len=arr.length;i<len;i++){
 				content+=arr[i]['name'];
-				content+='\t';
+				content+=',';
 				content+=arr[i]['id'];
-				content+='\t';
+				content+='\t,';
 				content+=arr[i]['company'];
-				content+='\t';
+				content+=',';
 				content+=arr[i]['phone'];
-				content+='\t';
+				content+='\t,';
 				content+=arr[i]['nashuirendizhi'];
-				content+='\t';
+				content+=',';
 				content+=arr[i]['nashuirenshibiehao'];
-				content+='\t';
+				content+='\t,';
 				content+=arr[i]['fapiaotaitou'];
-				content+='\t';
+				content+=',';
 				content+=arr[i]['kaipiaojine'];
-				content+='\t';
+				content+=',';
 				content+=arr[i]['fapiaoneirong'];
-				content+='\t';
-				content+='\t\n';
+				content+=',';
+				content+='\n';
 			}
 			var buffer = new Buffer(content);
 			//需要转换字符集
@@ -227,7 +227,7 @@ router.route('/stay_info').post(function(req, res) {
 	});
 });
 router.route('/stay_info_excel').get(function(req, res) {
-	var fileName='stay_info.xls';
+	var fileName='stay_info.csv';
 	res.set({
 		'Content-Type': 'application/vnd.ms-execl',
 		'Content-Disposition':  "attachment;filename="+encodeURIComponent(fileName) ,
@@ -255,18 +255,18 @@ router.route('/stay_info_excel').get(function(req, res) {
 			var content='';
 			for(var i=0,len=arr.length;i<len;i++){
 				content+=arr[i]['name'];
-				content+='\t';
+				content+=',';
 				content+=arr[i]['id'];
-				content+='\t';
+				content+='\t,';
 				content+=arr[i]['company'];
-				content+='\t';
+				content+=',';
 				content+=arr[i]['phone'];
-				content+='\t';
+				content+='\t,';
 				content+=arr[i]['hotel'];
-				content+='\t';
+				content+=',';
 				content+=arr[i]['room'];
-				content+='\t';
-				content+='\t\n';
+				content+=',';
+				content+='\n';
 			}
 			var buffer = new Buffer(content);
 			//需要转换字符集
@@ -304,23 +304,25 @@ router.route('/import_user').post(multipartMiddleware,function(req, res) {
 	var toJson = xlsx.utils.sheet_to_json(worksheet);
 	try {
 		for(var i in toJson){
-			var obj = {
-				id:toJson[i]['身份证号/军官证号'] || '',
-				name:toJson[i]['姓名'] || '',
-				gender:toJson[i]['性别'] || '',
-				phone:toJson[i]['移动电话'] || '',
-				career:toJson[i]['类型'] || '',
-				province:toJson[i]['省份'] || '',
-				email:toJson[i]['E-mail'] || '',
-				company:toJson[i]['工作单位'] || '',
-				fapiaotaitou:toJson[i]['发票抬头'] || '',
-				nashuirendizhi:toJson[i]['纳税人地址'] || '',
-				qiandaozhuangtai:toJson[i]['签到状态'] || '',
-				nashuirendianhua:toJson[i]['纳税人电话'] || '',
-				nashuirenshibiehao:toJson[i]['纳税人识别号'] || '',
-				comment:toJson[i]['备注'] || ''
-			};
-			db.collection('user').insertOne(obj)
+			if(toJson[i]['身份证号/军官证号']!==''&&toJson[i]['身份证号/军官证号']){
+				var obj = {
+					id:toJson[i]['身份证号/军官证号'],
+					name:toJson[i]['姓名'] || '',
+					gender:toJson[i]['性别'] || '',
+					phone:toJson[i]['移动电话'] || '',
+					career:toJson[i]['类型'] || '',
+					province:toJson[i]['省份'] || '',
+					email:toJson[i]['E-mail'] || '',
+					company:toJson[i]['工作单位'] || '',
+					fapiaotaitou:toJson[i]['发票抬头'] || '',
+					nashuirendizhi:toJson[i]['纳税人地址'] || '',
+					qiandaozhuangtai:toJson[i]['签到状态'] || '',
+					nashuirendianhua:toJson[i]['纳税人电话'] || '',
+					nashuirenshibiehao:toJson[i]['纳税人识别号'] || '',
+					comment:toJson[i]['备注'] || ''
+				};
+				db.collection('user').insertOne(obj)
+			}
 		}
 		res.send('导入成功')
 	}catch(e){
@@ -329,7 +331,11 @@ router.route('/import_user').post(multipartMiddleware,function(req, res) {
 
 
 });
+router.post('/', function(req, res, next) {
+});
 
+router.get('/test1',function(req, res) {
 
+});
 
 module.exports = router;

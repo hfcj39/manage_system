@@ -134,7 +134,11 @@ router.route('/edituser').post(
         });
     }
 )
-    .get(ensureAuthenticated ,function(req,res) {
+    .get(ensureAuthenticated,function(req,res) {
+        //console.log(req.query.id);
+        // db.collection('user').removeById(req.query._id,function(err, rst) {
+        //     console.log(err,rst)
+        // });
         db.collection('user').deleteOne({id:req.query.id.toUpperCase()},function (err,rst) {
             if (err){
                 res.status(401)
@@ -410,7 +414,7 @@ function caculate(userId) {
 }
 
 router.route('/feeexecl').get(function (req, res) {
-    var fileName='fee.xls';
+    var fileName='fee.csv';
     res.set({
         'Content-Type': 'application/vnd.ms-execl',
         'Content-Disposition':  "attachment;filename="+encodeURIComponent(fileName) ,
@@ -442,28 +446,28 @@ router.route('/feeexecl').get(function (req, res) {
             var content='';
             for(var i=0,len=arr.length;i<len;i++){
                 content+=arr[i]['name'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['id'];
-                content+='\t';
+                content+='\t,';
                 content+=arr[i]['chaeshui'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['yingfufeiyong'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['fapiaotaitou'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['yingshoufeiyong'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['kaipiaojine'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['jiudianshuaka'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['huiwugongsishuaka'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['xianjin'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['shoufeizhuangtai'];
-                content+='\t';
-                content+='\t\n';
+                content+=',';
+                content+='\n';
             }
             var buffer = new Buffer(content);
             //需要转换字符集
@@ -476,7 +480,7 @@ router.route('/feeexecl').get(function (req, res) {
 });
 
 router.route('/userexecl').get(function(req,res){
-    var fileName= "user.xls";
+    var fileName= "user.csv";
     res.set({
         'Content-Type': 'application/vnd.ms-execl',
         'Content-Disposition':  "attachment;filename="+encodeURIComponent(fileName) ,
@@ -494,7 +498,7 @@ router.route('/userexecl').get(function(req,res){
             company:'单位名称',
             phone:'电话',
             email:'邮箱',
-            address:'地址',
+            fapiaotaitou:'发票抬头',
             comment:'备注',
             qiandaozhuangtai:'签到'
         });
@@ -502,28 +506,28 @@ router.route('/userexecl').get(function(req,res){
         var content='';
         for(var i=0,len=arr.length;i<len;i++){
             content+=arr[i]['name'];
-            content+='\t';
+            content+=',';
             content+=arr[i]['gender'];
-            content+='\t';
+            content+=',';
             content+=arr[i]['id'];
-            content+='\t';
+            content+='\t,';
             content+=arr[i]['career'];
-            content+='\t';
+            content+=',';
             content+=arr[i]['province'];
-            content+='\t';
+            content+=',';
             content+=arr[i]['company'];
-            content+='\t';
+            content+=',';
             content+=arr[i]['phone'];
-            content+='\t';
+            content+='\t,';
             content+=arr[i]['email'];
-            content+='\t';
-            content+=arr[i]['address'];
-            content+='\t';
+            content+=',';
+            content+=arr[i]['fapiaotaitou'];
+            content+=',';
             content+=arr[i]['comment'];
-            content+='\t';
+            content+=',';
             content+=arr[i]['qiandaozhuangtai'];
-            content+='\t';
-            content+='\t\n';
+            content+=',';
+            content+='\n';
         }
         var buffer = new Buffer(content);
         //需要转换字符集
@@ -536,7 +540,7 @@ router.route('/userexecl').get(function(req,res){
 });
 
 router.route('/stayexecl').get(function (req, res) {
-    var fileName='stay_info.xls';
+    var fileName='stay_info.csv';
     res.set({
         'Content-Type': 'application/vnd.ms-execl',
         'Content-Disposition':  "attachment;filename="+encodeURIComponent(fileName) ,
@@ -574,40 +578,40 @@ router.route('/stayexecl').get(function (req, res) {
             var content='';
             for(var i=0,len=arr.length;i<len;i++){
                 content+=arr[i]['name'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['id'];
-                content+='\t';
+                content+='\t,';
                 content+=arr[i]['zhusuyaoqiu'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['hotel'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['room'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['begin'];
-                content+='\t';
+                content+='\t,';
                 content+=arr[i]['end'];
-                content+='\t';
+                content+='\t,';
                 content+=arr[i]['totalprice'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['fangjianjiage'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['fapiaotaitou'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['kaipiaojine'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['chaeshui'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['yingfufeiyong'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['jiudianshuaka'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['huiwugongsishuaka'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['xianjin'];
-                content+='\t';
+                content+=',';
                 content+=arr[i]['shoufeizhuangtai'];
-                content+='\t';
-                content+='\t\n';
+                content+=',';
+                content+='\n';
             }
             var buffer = new Buffer(content);
             //需要转换字符集
