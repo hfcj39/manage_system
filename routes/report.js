@@ -303,27 +303,35 @@ router.route('/import_user').post(multipartMiddleware,function(req, res) {
 	var worksheet = rst.Sheets[sheetNames[0]];
 	var toJson = xlsx.utils.sheet_to_json(worksheet);
 	try {
-		for(var i in toJson){
-			if(toJson[i]['身份证号/军官证号']!==''&&toJson[i]['身份证号/军官证号']){
-				var obj = {
-					id:toJson[i]['身份证号/军官证号'],
-					name:toJson[i]['姓名'] || '',
-					gender:toJson[i]['性别'] || '',
-					phone:toJson[i]['移动电话'] || '',
-					career:toJson[i]['类型'] || '',
-					province:toJson[i]['省份'] || '',
-					email:toJson[i]['E-mail'] || '',
-					company:toJson[i]['工作单位'] || '',
-					fapiaotaitou:toJson[i]['发票抬头'] || '',
-					nashuirendizhi:toJson[i]['纳税人地址'] || '',
-					qiandaozhuangtai:toJson[i]['签到状态'] || '',
-					nashuirendianhua:toJson[i]['纳税人电话'] || '',
-					nashuirenshibiehao:toJson[i]['纳税人识别号'] || '',
-					comment:toJson[i]['备注'] || ''
-				};
-				db.collection('user').insertOne(obj)
+		async.map(toJson,function (item,callback) {
+			if(item['身份证号/军官证号']!==''&&item['身份证号/军官证号']){
+				db.collection('user').findOne({id:item['身份证号/军官证号']},function(err, rst) {
+					//console.log('rst:'+rst);
+					if(!rst){
+						//console.log('item'+item['身份证号/军官证号']);
+						var obj = {
+							id:item['身份证号/军官证号'],
+							name:item['姓名'] || '',
+							gender:item['性别'] || '',
+							phone:item['移动电话'] || '',
+							career:item['类型'] || '',
+							province:item['省份'] || '',
+							email:item['E-mail'] || '',
+							company:item['工作单位'] || '',
+							fapiaotaitou:item['发票抬头'] || '',
+							nashuirendizhi:item['纳税人地址'] || '',
+							qiandaozhuangtai:item['签到状态'] || '',
+							nashuirendianhua:item['纳税人电话'] || '',
+							nashuirenshibiehao:item['纳税人识别号'] || '',
+							comment:item['备注'] || ''
+						};
+						db.collection('user').insertOne(obj)
+					}
+				});
+				callback()
 			}
-		}
+
+		});
 		res.send('导入成功')
 	}catch(e){
 		res.send('导入发生错误')
@@ -335,6 +343,10 @@ router.post('/', function(req, res, next) {
 });
 
 router.get('/test1',function(req, res) {
+	var rst = xlsx.readFile('./public/user.xlsx');
+	var sheetNames = rst.SheetNames;
+	var worksheet = rst.Sheets[sheetNames[0]];
+	var toJson = xlsx.utils.sheet_to_json(worksheet);
 
 });
 
